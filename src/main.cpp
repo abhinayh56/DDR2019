@@ -1,11 +1,11 @@
 #include <Arduino.h>
 
-int ml1=2;
-int ml2=3;
-int mr1=7;
-int mr2=4;
-int enl=5;
-int enr=6;
+#define ML1 2
+#define ML2 3
+#define MR1 7
+#define MR2 4
+#define ENL 5
+#define ENR 6
 
 void setup_motor_pins();
 void set_speed(int duty_cycle_);
@@ -16,44 +16,35 @@ void left();
 void right();
 
 
-void setup()
-{
+void setup(){
   Serial.begin(9600);
+  
   setup_motor_pins();
   hold();  
   set_speed(100);
 }
 
-void loop()
-{
-  if(Serial.available()>0)
-  {
+void loop(){
+  if(Serial.available()>0){
     char c = Serial.read();
     Serial.println(c);
-    if(c=='s')
-    {
+    if(c=='s'){
       hold();
     }
-    if(c=='f')
-    {
+    if(c=='f'){
       front();
     }
-    if(c=='b')
-    {
+    if(c=='b'){
       back();
     }
-    if(c=='l')
-    {
+    if(c=='l'){
       left();
     }
-    if(c=='r')
-    {
+    if(c=='r'){
       right();
     }
-    if(c=='a')
-    {
-      for(int i=0; i<5; i++)
-      {
+    if(c=='a'){
+      for(int i=0; i<5; i++){
         right();
         delay(800);
         left();
@@ -64,58 +55,51 @@ void loop()
   }
 }
 
-void setup_motor_pins()
-{
-  pinMode(ml1,OUTPUT);
-  pinMode(ml2,OUTPUT);
-  pinMode(mr1,OUTPUT);
-  pinMode(mr2,OUTPUT);
-  pinMode(enl,OUTPUT);
-  pinMode(enr,OUTPUT);
+void setup_motor_pins(){
+  pinMode(ML1, OUTPUT);
+  pinMode(ML2, OUTPUT);
+  pinMode(MR1, OUTPUT);
+  pinMode(MR2, OUTPUT);
+  pinMode(ENL, OUTPUT);
+  pinMode(ENR, OUTPUT);
 }
 
-void set_speed(int duty_cycle_)
-{
-  analogWrite(enl,duty_cycle_);
-  analogWrite(enr,duty_cycle_);
+void set_speed(int duty_cycle_){
+  analogWrite(ENL, duty_cycle_);
+  analogWrite(ENR, duty_cycle_);
 }
 
-void hold()
-{
-  digitalWrite(ml1,LOW);
-  digitalWrite(ml2,LOW);
-  digitalWrite(mr1,LOW);
-  digitalWrite(mr2,LOW);
+void hold(){
+  digitalWrite(ML1, LOW);
+  digitalWrite(ML2, LOW);
+  digitalWrite(MR1, LOW);
+  digitalWrite(MR2, LOW);
 }
 
-void front()
-{
-  digitalWrite(ml1,HIGH);
-  digitalWrite(ml2,LOW);
-  digitalWrite(mr1,HIGH);
-  digitalWrite(mr2,LOW);
+void front(){
+  digitalWrite(ML1, HIGH);
+  digitalWrite(ML2, LOW);
+  digitalWrite(MR1, HIGH);
+  digitalWrite(MR2, LOW);
 }
 
-void back()
-{
-  digitalWrite(ml1,LOW);
-  digitalWrite(ml2,HIGH);
-  digitalWrite(mr1,LOW);
-  digitalWrite(mr2,HIGH);
+void back(){
+  digitalWrite(ML1, LOW);
+  digitalWrite(ML2, HIGH);
+  digitalWrite(MR1, LOW);
+  digitalWrite(MR2, HIGH);
 }
 
-void left()
-{
-  digitalWrite(ml1,LOW);
-  digitalWrite(ml2,HIGH);
-  digitalWrite(mr1,HIGH);
-  digitalWrite(mr2,LOW);
+void left(){
+  digitalWrite(ML1, LOW);
+  digitalWrite(ML2, HIGH);
+  digitalWrite(MR1, HIGH);
+  digitalWrite(MR2, LOW);
 }
 
-void right()
-{
-  digitalWrite(ml1,HIGH);
-  digitalWrite(ml2,LOW);
-  digitalWrite(mr1,LOW);
-  digitalWrite(mr2,HIGH);
+void right(){
+  digitalWrite(ML1, HIGH);
+  digitalWrite(ML2, LOW);
+  digitalWrite(MR1, LOW);
+  digitalWrite(MR2, HIGH);
 }
