@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 int ml1=2;
 int ml2=3;
 int mr1=7;
@@ -5,7 +7,14 @@ int mr2=4;
 int enl=5;
 int enr=6;
 
-float x;
+void setup_motor_pins();
+void set_speed(int duty_cycle_);
+void hold();
+void front();
+void back();
+void left();
+void right();
+
 
 void setup()
 {
@@ -19,29 +28,29 @@ void loop()
 {
   if(Serial.available()>0)
   {
-    x=Serial.read();
-    Serial.println(char(x));
-    if(x=='s')
+    char c = Serial.read();
+    Serial.println(c);
+    if(c=='s')
     {
       hold();
     }
-    if(x=='f')
+    if(c=='f')
     {
       front();
     }
-    if(x=='b')
+    if(c=='b')
     {
       back();
     }
-    if(x=='l')
+    if(c=='l')
     {
       left();
     }
-    if(x=='r')
+    if(c=='r')
     {
       right();
     }
-    if(x=='a')
+    if(c=='a')
     {
       for(int i=0; i<5; i++)
       {
