@@ -7,7 +7,16 @@
 #define ENL 5
 #define ENR 6
 
+int8_t pwm_1 = 0;
+int8_t pwm_2 = 0;
+
 void setup_motor_pins();
+
+void receive_data();
+
+void drive_robot(int8_t pwm_1_, int8_t pwm_2_);
+void drive_motor(int8_t pwm_pin, int8_t pwm_);
+
 void set_speed(int duty_cycle_);
 void hold();
 void front();
@@ -15,6 +24,7 @@ void back();
 void left();
 void right();
 
+char c = 's';
 
 void setup(){
   Serial.begin(9600);
@@ -25,33 +35,31 @@ void setup(){
 }
 
 void loop(){
-  if(Serial.available()>0){
-    char c = Serial.read();
-    Serial.println(c);
-    if(c=='s'){
-      hold();
-    }
-    if(c=='f'){
-      front();
-    }
-    if(c=='b'){
-      back();
-    }
-    if(c=='l'){
-      left();
-    }
-    if(c=='r'){
+  receive_data();
+
+  if(c=='s'){
+    hold();
+  }
+  else if(c=='f'){
+    front();
+  }
+  else if(c=='b'){
+    back();
+  }
+  else if(c=='l'){
+    left();
+  }
+  else if(c=='r'){
+    right();
+  }
+  else if(c=='a'){
+    for(int i=0; i<5; i++){
       right();
+      delay(800);
+      left();
+      delay(800);
     }
-    if(c=='a'){
-      for(int i=0; i<5; i++){
-        right();
-        delay(800);
-        left();
-        delay(800);
-      }
-      hold();
-    }
+    hold();
   }
 }
 
@@ -62,6 +70,16 @@ void setup_motor_pins(){
   pinMode(MR2, OUTPUT);
   pinMode(ENL, OUTPUT);
   pinMode(ENR, OUTPUT);
+}
+
+void drive_robot(int8_t pwm_1_, int8_t pwm_2_){
+}
+
+void receive_data(){
+  while(Serial.available()>0){
+    char c = Serial.read();
+    Serial.println(c);
+  }
 }
 
 void set_speed(int duty_cycle_){
@@ -103,3 +121,114 @@ void right(){
   digitalWrite(MR1, LOW);
   digitalWrite(MR2, HIGH);
 }
+
+
+
+// -------------------------------------------------
+// #include <Arduino.h>
+
+// #define ML1 2
+// #define ML2 3
+// #define MR1 7
+// #define MR2 4
+// #define ENL 5
+// #define ENR 6
+
+// void setup_motor_pins();
+// void set_speed(int duty_cycle_);
+// void hold();
+// void front();
+// void back();
+// void left();
+// void right();
+
+// char c = 's';
+
+// void setup(){
+//   Serial.begin(9600);
+  
+//   setup_motor_pins();
+//   hold();  
+//   set_speed(100);
+// }
+
+// void loop(){
+//   if(Serial.available()>0){
+//     char c = Serial.read();
+//     Serial.println(c);
+//   }
+
+//   if(c=='s'){
+//     hold();
+//   }
+//   else if(c=='f'){
+//     front();
+//   }
+//   else if(c=='b'){
+//     back();
+//   }
+//   else if(c=='l'){
+//     left();
+//   }
+//   else if(c=='r'){
+//     right();
+//   }
+//   else if(c=='a'){
+//     for(int i=0; i<5; i++){
+//       right();
+//       delay(800);
+//       left();
+//       delay(800);
+//     }
+//     hold();
+//   }
+// }
+
+// void setup_motor_pins(){
+//   pinMode(ML1, OUTPUT);
+//   pinMode(ML2, OUTPUT);
+//   pinMode(MR1, OUTPUT);
+//   pinMode(MR2, OUTPUT);
+//   pinMode(ENL, OUTPUT);
+//   pinMode(ENR, OUTPUT);
+// }
+
+// void set_speed(int duty_cycle_){
+//   analogWrite(ENL, duty_cycle_);
+//   analogWrite(ENR, duty_cycle_);
+// }
+
+// void hold(){
+//   digitalWrite(ML1, LOW);
+//   digitalWrite(ML2, LOW);
+//   digitalWrite(MR1, LOW);
+//   digitalWrite(MR2, LOW);
+// }
+
+// void front(){
+//   digitalWrite(ML1, HIGH);
+//   digitalWrite(ML2, LOW);
+//   digitalWrite(MR1, HIGH);
+//   digitalWrite(MR2, LOW);
+// }
+
+// void back(){
+//   digitalWrite(ML1, LOW);
+//   digitalWrite(ML2, HIGH);
+//   digitalWrite(MR1, LOW);
+//   digitalWrite(MR2, HIGH);
+// }
+
+// void left(){
+//   digitalWrite(ML1, LOW);
+//   digitalWrite(ML2, HIGH);
+//   digitalWrite(MR1, HIGH);
+//   digitalWrite(MR2, LOW);
+// }
+
+// void right(){
+//   digitalWrite(ML1, HIGH);
+//   digitalWrite(ML2, LOW);
+//   digitalWrite(MR1, LOW);
+//   digitalWrite(MR2, HIGH);
+// }
