@@ -1,48 +1,39 @@
-import threading
-import time
+print('GCS DDR2019')
 
-global a
-a = 100
+import serial
 
-def print_cube(num):
-    while(True):
-        global a
-        a = input()
-        print(10)
-        time.sleep(1)
- 
-def print_square(num):
-    while(True):
-        print(a)
-        time.sleep(0.5)
- 
-if __name__ =="__main__":
-    t1 = threading.Thread(target=print_square, args=(10,))
-    t2 = threading.Thread(target=print_cube, args=(10,))
- 
-    t1.start()
-    t2.start()
- 
-    # t1.join()
-    # t2.join()
- 
-    print("Done!")
+ser = serial.Serial()
+ser.baudrate = 9600
+ser.port = '/dev/rfcomm8'
+ser.timeout = 0.15
 
+ser.open()
 
-# print('GCS DDR2019')
+def send_command(character_tx):
+    try:
+        ser.write(bytes(character_tx, 'UTF-8'))
+        print(character_tx, '--->')
+    except:
+        print('--->', 'X' , "TX Error!")
 
-# import serial
+def receive_command():
+    try:
+        character_rx = ser.readline()
+        character_rx = str(character_rx, 'UTF-8')
+        print(character_rx, '<---')
+    except:
+        print('X', '<---', "RX Error!")
 
-# ser = serial.Serial()
-# ser.baudrate = 9600
-# ser.port = '/dev/rfcomm1'
+while 1:
+    print("----------")
 
-# ser.open()
+    c = input(': ')
 
-# while 1:
-#     character = input()
-#     if character == 'q':
-#         break
-#     ser.write(bytes(character, 'UTF-8'))
+    if(c=='q'):
+        send_command('s')
+        break
+    else:
+        send_command(c)
+        receive_command()
 
-# ser.close()
+ser.close()
