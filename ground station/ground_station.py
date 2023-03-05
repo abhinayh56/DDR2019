@@ -11,6 +11,18 @@ ser.port = '/dev/ttyACM0'
 
 ser.open()
 
+def crc8(data):
+    polynomial = 0x07
+    crc = 0x00
+    for byte in data:
+        crc ^= byte
+        for _ in range(8):
+            if crc & 0x80:
+                crc = (crc << 1) ^ polynomial
+            else:
+                crc <<= 1
+    return crc & 0xff
+
 def send_command(character_tx):
     try:
         ser.write(bytes(character_tx, 'UTF-8'))
@@ -40,6 +52,10 @@ while 1:
     pwm_Rl = pwm_R & (0b11111111)
 
     tx_pkt = [0x15, 0xEC, 0x00, pwm_Lh, pwm_Ll, pwm_Rh, pwm_Rl, 0x00, 0x04, 0xD2]
+
+    crc = crc8(bytearray(tx_pkt[2:7]))
+    tx_pkt[7] = crc
+    
     tx_pkt = bytearray(tx_pkt)
     ser.write(tx_pkt)
 
