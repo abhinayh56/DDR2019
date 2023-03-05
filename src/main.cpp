@@ -17,11 +17,11 @@ unsigned long last_pkt_t = 0;
 #define ENL 5
 #define ENR 6
 
-uint8_t pwm_L = 0;
-uint8_t pwm_R = 0;
+int16_t pwm_L = 0;
+int16_t pwm_R = 0;
 #define PWM_MAX 190
 
-byte pkt_rx[8] = {0x15, 0xEC, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2};
+byte pkt_rx[10] = {0x15, 0xEC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2};
 bool pkt_available = false;
 bool robot_init = false;
 bool timeout = false;
@@ -53,18 +53,18 @@ void receive_data(){
   while(Serial.available()>0){
     byte b = Serial.read();
     // Serial.write(b);
-    // {0x15, 0xEC, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2}
-    for(int i=0;i<7;i++){
+    // {0x15, 0xEC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2}
+    for(int i=0;i<9;i++){
       pkt_rx[i] = pkt_rx[i+1];
     }
-    pkt_rx[7] = b;
+    pkt_rx[9] = b;
 
     byte n = new_msg_available();
 
     switch(n){
       case 0x00:
-        pwm_L = pkt_rx[3];
-        pwm_R = pkt_rx[4];
+        pwm_L = (((int16_t)pkt_rx[3])<<8) | pkt_rx[4];
+        pwm_R = (((int16_t)pkt_rx[5])<<8) | pkt_rx[6];
         break;
       case 0x01:
         break;
@@ -77,7 +77,7 @@ void receive_data(){
 }
 
 byte new_msg_available(){
-  pkt_available = (pkt_rx[0]==0x15) && (pkt_rx[1]==0xEC) && (pkt_rx[6]==0x04) && (pkt_rx[7]==0xD2);
+  pkt_available = (pkt_rx[0]==0x15) && (pkt_rx[1]==0xEC) && (pkt_rx[8]==0x04) && (pkt_rx[9]==0xD2);
 
   if(pkt_available==true){
     bool pkt_valid = true; //((pkt_rx[2] | pkt_rx[3] | pkt_rx[4]) == pkt_rx[5]);
