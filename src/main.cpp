@@ -1,7 +1,7 @@
 /*
   Project: DDR2019
   Arduino Uno and Bluetooth serial communication
-  Input is given from python ground station as PWM
+  Input is given from python ground station as PWM to left and right motor separately
 */
 
 #include <Arduino.h>
@@ -29,7 +29,7 @@ bool timeout = false;
 void setup_motor_pins();
 void receive_data();
 byte new_msg_available();
-
+void send_data();
 void drive_robot(int16_t pwm_L, int16_t pwm_R);
 void drive_motor_L(int16_t pwm);
 void drive_motor_R(int16_t pwm);
@@ -38,14 +38,14 @@ int16_t saturate(int16_t x, int16_t x_min, int16_t x_max);
 void setup(){
   Serial.begin(9600);
   setup_motor_pins();
+  drive_robot(0,0);
 }
 
 void loop(){
   receive_data();
   drive_robot(pwm_L, pwm_R);
-  Serial.print(pwm_L);
-  Serial.print('\t');
-  Serial.println(pwm_R);
+  send_data();
+
   delay(100);
 }
 
@@ -92,6 +92,14 @@ byte new_msg_available(){
   else{
     return 0xFF;
   }
+}
+
+void send_data(){
+  Serial.print((0.001)*(float)millis());
+  Serial.print('\t');
+  Serial.print(pwm_L);
+  Serial.print('\t');
+  Serial.println(pwm_R);
 }
 
 void setup_motor_pins(){
