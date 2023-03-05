@@ -4,7 +4,7 @@ import serial
 
 ser = serial.Serial()
 ser.baudrate = 9600
-ser.port = '/dev/rfcomm8'
+ser.port = '/dev/rfcomm0'
 ser.timeout = 0.15
 
 ser.open()

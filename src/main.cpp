@@ -1,10 +1,14 @@
 /*
   Project: DDR2019
   Arduino Uno and Bluetooth serial communication
-  Input is given from python ground station or android app
+  Input is given from python ground station as PWM
 */
 
 #include <Arduino.h>
+
+unsigned long t = 0;
+unsigned long last_pkt_t = 0;
+#define TIMEOUT 2000UL
 
 #define ML1 2
 #define ML2 3
@@ -13,53 +17,80 @@
 #define ENL 5
 #define ENR 6
 
-void setup_motor_pins();
-void set_speed(int duty_cycle_);
-void hold();
-void front();
-void back();
-void left();
-void right();
+uint8_t pwm_L = 0;
+uint8_t pwm_R = 0;
+#define PWM_MAX 190
 
-char c = 's';
+byte pkt_rx[8] = {0x15, 0xEC, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2};
+bool pkt_available = false;
+bool robot_init = false;
+bool timeout = false;
+
+void setup_motor_pins();
+void receive_data();
+byte new_msg_available();
+
+void drive_robot(int16_t pwm_L, int16_t pwm_R);
+void drive_motor_L(int16_t pwm);
+void drive_motor_R(int16_t pwm);
+int16_t saturate(int16_t x, int16_t x_min, int16_t x_max);
 
 void setup(){
   Serial.begin(9600);
-  
   setup_motor_pins();
-  hold();  
-  set_speed(80);
 }
 
 void loop(){
-  if(Serial.available()>0){
-    c = Serial.read();
-    Serial.print(c);
-  }
+  receive_data();
+  drive_robot(pwm_L, pwm_R);
+  Serial.print(pwm_L);
+  Serial.print('\t');
+  Serial.println(pwm_R);
+  delay(100);
+}
 
-  if(c=='s'){
-    hold();
-  }
-  else if(c=='f'){
-    front();
-  }
-  else if(c=='b'){
-    back();
-  }
-  else if(c=='l'){
-    left();
-  }
-  else if(c=='r'){
-    right();
-  }
-  else if(c=='a'){
-    for(int i=0; i<3; i++){
-      right();
-      delay(800);
-      left();
-      delay(800);
+void receive_data(){
+  while(Serial.available()>0){
+    byte b = Serial.read();
+    // Serial.write(b);
+    // {0x15, 0xEC, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2}
+    for(int i=0;i<7;i++){
+      pkt_rx[i] = pkt_rx[i+1];
     }
-    hold();
+    pkt_rx[7] = b;
+
+    byte n = new_msg_available();
+
+    switch(n){
+      case 0x00:
+        pwm_L = pkt_rx[3];
+        pwm_R = pkt_rx[4];
+        break;
+      case 0x01:
+        break;
+      case 0x02:
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+byte new_msg_available(){
+  pkt_available = (pkt_rx[0]==0x15) && (pkt_rx[1]==0xEC) && (pkt_rx[6]==0x04) && (pkt_rx[7]==0xD2);
+
+  if(pkt_available==true){
+    bool pkt_valid = true; //((pkt_rx[2] | pkt_rx[3] | pkt_rx[4]) == pkt_rx[5]);
+
+    if(pkt_valid==true){
+      return pkt_rx[2];
+    }
+    else{
+      return 0xFF;
+    }
+  }
+  else{
+    return 0xFF;
   }
 }
 
@@ -72,42 +103,47 @@ void setup_motor_pins(){
   pinMode(ENR, OUTPUT);
 }
 
-void set_speed(int duty_cycle_){
-  analogWrite(ENL, duty_cycle_);
-  analogWrite(ENR, duty_cycle_);
+void drive_robot(int16_t pwm_L_, int16_t pwm_R_){
+  drive_motor_L(pwm_L_);
+  drive_motor_R(pwm_R_);
 }
 
-void hold(){
-  digitalWrite(ML1, LOW);
-  digitalWrite(ML2, LOW);
-  digitalWrite(MR1, LOW);
-  digitalWrite(MR2, LOW);
+void drive_motor_L(int16_t pwm){
+  pwm = saturate(pwm, -PWM_MAX, PWM_MAX);
+  if(pwm>=0){
+    digitalWrite(ML1, HIGH);
+    digitalWrite(ML2, LOW);
+    analogWrite(ENL, pwm);
+  }
+  else{
+    digitalWrite(ML1, LOW);
+    digitalWrite(ML2, HIGH);
+    analogWrite(ENL, -pwm);
+  }
 }
 
-void front(){
-  digitalWrite(ML1, HIGH);
-  digitalWrite(ML2, LOW);
-  digitalWrite(MR1, HIGH);
-  digitalWrite(MR2, LOW);
+void drive_motor_R(int16_t pwm){
+  pwm = saturate(pwm, -PWM_MAX, PWM_MAX);
+  if(pwm>=0){
+    digitalWrite(MR1, HIGH);
+    digitalWrite(MR2, LOW);
+    analogWrite(ENR, pwm);
+  }
+  else{
+    digitalWrite(MR1, LOW);
+    digitalWrite(MR2, HIGH);
+    analogWrite(ENR, -pwm);
+  }
 }
 
-void back(){
-  digitalWrite(ML1, LOW);
-  digitalWrite(ML2, HIGH);
-  digitalWrite(MR1, LOW);
-  digitalWrite(MR2, HIGH);
-}
-
-void left(){
-  digitalWrite(ML1, LOW);
-  digitalWrite(ML2, HIGH);
-  digitalWrite(MR1, HIGH);
-  digitalWrite(MR2, LOW);
-}
-
-void right(){
-  digitalWrite(ML1, HIGH);
-  digitalWrite(ML2, LOW);
-  digitalWrite(MR1, LOW);
-  digitalWrite(MR2, HIGH);
+int16_t saturate(int16_t x, int16_t x_min, int16_t x_max){
+  if(x>x_max){
+    return x_max;
+  }
+  else if(x<x_min){
+    return x_min;
+  }
+  else{
+    return x;
+  }
 }
