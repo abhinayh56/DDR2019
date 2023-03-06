@@ -19,12 +19,11 @@ unsigned long last_pkt_t = 0;
 
 int16_t pwm_L = 0;
 int16_t pwm_R = 0;
-#define PWM_MAX 190
+#define PWM_MAX 190 // @12 Volt 
 
 byte pkt_rx[10] = {0x15, 0xEC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2};
 byte pkt_rx_crc[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
 uint8_t crc;
-bool pkt_available = false;
 bool robot_init = false;
 bool timeout = false;
 
@@ -47,7 +46,7 @@ void setup(){
 void loop(){
   receive_data();
   drive_robot(pwm_L, pwm_R);
-  send_data();
+  // send_data();
 
   delay(100);
 }
@@ -80,16 +79,31 @@ void receive_data(){
 }
 
 byte new_msg_available(){
-  pkt_available = (pkt_rx[0]==0x15) && (pkt_rx[1]==0xEC) && (pkt_rx[8]==0x04) && (pkt_rx[9]==0xD2);
-
+  bool pkt_available = (pkt_rx[0]==0x15) && (pkt_rx[1]==0xEC) && (pkt_rx[8]==0x04) && (pkt_rx[9]==0xD2);
   if(pkt_available==true){
+    Serial.write(pkt_rx[0]);
+    Serial.write(pkt_rx[1]);
+    Serial.write(pkt_rx[2]);
+    Serial.write(pkt_rx[3]);
+    Serial.write(pkt_rx[4]);
+    Serial.write(pkt_rx[5]);
+    Serial.write(pkt_rx[6]);
+    Serial.write(pkt_rx[7]);
+    Serial.write(pkt_rx[8]);
+    Serial.write(pkt_rx[9]);
+    
     pkt_rx_crc[0] = pkt_rx[2];
     pkt_rx_crc[1] = pkt_rx[3];
     pkt_rx_crc[2] = pkt_rx[4];
     pkt_rx_crc[3] = pkt_rx[5];
     pkt_rx_crc[4] = pkt_rx[6];
-    uint8_t crc = crc8(pkt_rx_crc, sizeof(pkt_rx_crc) - 1);
-    bool pkt_valid = (crc & pkt_rx[7]);
+    byte crc = crc8(pkt_rx_crc, sizeof(pkt_rx_crc));
+    bool pkt_valid = (crc==pkt_rx[7]);
+
+    Serial.write(crc);
+    Serial.write(pkt_rx[7]);
+    Serial.write(pkt_valid);
+    Serial.write('\n');
 
     if(pkt_valid==true){
       return pkt_rx[2];
@@ -104,7 +118,7 @@ byte new_msg_available(){
 }
 
 void send_data(){
-  Serial.print((0.001)*(float)millis());
+  Serial.print(uint32_t(millis()/100));
   Serial.print('\t');
   Serial.print(pwm_L);
   Serial.print('\t');
@@ -168,7 +182,7 @@ int16_t saturate(int16_t x, int16_t x_min, int16_t x_max){
 uint8_t crc8(const uint8_t *data, uint32_t length){
   const uint8_t polynomial = 0x07;
   uint8_t crc = 0x00;
-  for (uint32_t i=0;i<length;i++){
+  for (uint8_t i=0;i<length;i++){
     crc ^= data[i];
     for (uint8_t j=0;j<8;j++){
       if(crc & 0x80){
