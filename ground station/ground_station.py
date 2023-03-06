@@ -41,70 +41,50 @@ def send_command(pwm_L_, pwm_R_):
 
     try:
         ser.write(tx_pkt)
-        print(len(list(tx_pkt)), list(tx_pkt), '    --->')
-        # print('--->', pwm_L_, ',', pwm_R_)
+        print(pwm_L_, ',', pwm_R_, '--->')
     except:
         print('XXX, XXX --->')
 
 def receive_command():
     try:
         rx_pkt = ser.readline()
-        # rx_pkt = list(rx_pkt)
-        # t_robot = (rx_pkt[0]<<24) | (rx_pkt[1]<<16) | (rx_pkt[2]<<8) | rx_pkt[3]
-        # 32 8 16 8 16 8 8
-        # print(rx_pkt, t_robot/1000.0, '<---')
-        print(len(list(rx_pkt)), list(rx_pkt), '<---')
+        rx_pkt = list(rx_pkt)
+        index_comma = 0
+        n = len(rx_pkt)
+        for i in range(0,n):
+            if(rx_pkt[i]==44):
+                index_comma = i
+                break
+        
+        pwl = []
+        pwr = []
+
+        for i in range(0,index_comma):
+            pwl.append(rx_pkt[i]-48)
+        for i in range(index_comma+1, n-1):
+            pwr.append(rx_pkt[i]-48)
+        
+        pl = 0
+        pr = 0
+        
+        for i in range(0,len(pwl)):
+            pl = pl*10 + pwl[i]
+        
+        for i in range(0,len(pwr)):
+            pr = pr*10 + pwr[i]
+
+        print(rx_pkt, pwl, pwr, pl , pr, '<---')
     except:
         print('XXX, XXX <---', "RX Error!")
 
 t0 = time.time()
 
 while 1:
-    pwm_L = 0
-    pwm_R = 0
+    pwm_L = 170*0
+    pwm_R = 119*0
     send_command(pwm_L, pwm_R)
     receive_command()
 
     time.sleep(0.1)
 
 ser.close()
-
-# print('GCS DDR2019')
-
-# import serial
-
-# ser = serial.Serial()
-# ser.baudrate = 9600
-# ser.port = '/dev/rfcomm0'
-# ser.timeout = 0.15
-
-# ser.open()
-
-# def send_command(character_tx):
-#     try:
-#         ser.write(bytes(character_tx, 'UTF-8'))
-#         print(character_tx, '--->')
-#     except:
-#         print('--->', 'X' , "TX Error!")
-
-# def receive_command():
-#     try:
-#         character_rx = ser.readline()
-#         character_rx = str(character_rx, 'UTF-8')
-#         print(character_rx, '<---')
-#     except:
-#         print('X', '<---', "RX Error!")
-
-# while 1:
-#     print("----------")
-
-#     c = input(': ')
-
-#     if(c=='q'):
-#         send_command('s')
-#         break
-#     else:
-#         send_command(c)
-#         receive_command()
-
-# ser.close()

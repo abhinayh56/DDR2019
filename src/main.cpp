@@ -46,7 +46,7 @@ void setup(){
 void loop(){
   receive_data();
   drive_robot(pwm_L, pwm_R);
-  // send_data();
+  send_data();
 
   delay(100);
 }
@@ -81,29 +81,13 @@ void receive_data(){
 byte new_msg_available(){
   bool pkt_available = (pkt_rx[0]==0x15) && (pkt_rx[1]==0xEC) && (pkt_rx[8]==0x04) && (pkt_rx[9]==0xD2);
   if(pkt_available==true){
-    Serial.write(pkt_rx[0]);
-    Serial.write(pkt_rx[1]);
-    Serial.write(pkt_rx[2]);
-    Serial.write(pkt_rx[3]);
-    Serial.write(pkt_rx[4]);
-    Serial.write(pkt_rx[5]);
-    Serial.write(pkt_rx[6]);
-    Serial.write(pkt_rx[7]);
-    Serial.write(pkt_rx[8]);
-    Serial.write(pkt_rx[9]);
-    
     pkt_rx_crc[0] = pkt_rx[2];
     pkt_rx_crc[1] = pkt_rx[3];
     pkt_rx_crc[2] = pkt_rx[4];
     pkt_rx_crc[3] = pkt_rx[5];
     pkt_rx_crc[4] = pkt_rx[6];
-    byte crc = crc8(pkt_rx_crc, sizeof(pkt_rx_crc));
+    uint8_t crc = crc8(pkt_rx_crc, sizeof(pkt_rx_crc));
     bool pkt_valid = (crc==pkt_rx[7]);
-
-    Serial.write(crc);
-    Serial.write(pkt_rx[7]);
-    Serial.write(pkt_valid);
-    Serial.write('\n');
 
     if(pkt_valid==true){
       return pkt_rx[2];
@@ -118,11 +102,12 @@ byte new_msg_available(){
 }
 
 void send_data(){
-  Serial.print(uint32_t(millis()/100));
-  Serial.print('\t');
+  // Serial.print(((float)millis()/1000.0));
+  // Serial.print(',');
   Serial.print(pwm_L);
-  Serial.print('\t');
-  Serial.println(pwm_R);
+  Serial.print(',');
+  Serial.print(pwm_R);
+  Serial.print('\n');
 }
 
 void setup_motor_pins(){
